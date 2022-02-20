@@ -1,0 +1,15 @@
+{
+    "smbServer": {
+        "name": "dns-320",
+        "ipAddress": "192.168.1.100",
+        "shareName": "volume_1",
+        "destImagePath": "steve/iphone/image",
+        "destVideoPath": "steve/iphone/video",
+        "username": "guest",
+        "password": "****"
+    },
+    "localDeleteTimePeriod": {
+        "value": 90,
+        "units": "days"
+    } 
+}
