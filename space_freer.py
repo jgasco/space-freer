@@ -1,6 +1,6 @@
 from ast import Bytes
 import json, photos
-from os.path import join
+from os.path import join, splitext
 from datetime import datetime, timedelta
 from io import BytesIO
 from smb.SMBConnection import SMBConnection
@@ -52,11 +52,14 @@ class SpaceFreer(object):
         assets = photos.get_assets(media_type)
         for asset in assets:
             asset_file_name = str(ObjCInstance(asset).filename())
+            asset_format = splitext(asset_file_name)[1].lstrip(".")
             if asset_file_name not in remote_file_names:
-                dest_file_path = join(dest_path, asset_file_name)
-                image_data: BytesIO = asset.get_image_data()
-                image_data.seek(0)
-                self.smbCnxn.storeFile(self.smbServer.shareName, dest_file_path, image_data, timeout_per_file)
+                dest_file_path = join(dest_path, asset_file_name)               
+                pil_image = asset.get_image()
+                with BytesIO() as image_data:
+                    pil_image.save(image_data, asset_format)
+                    image_data.seek(0)
+                    self.smbCnxn.storeFile(self.smbServer.shareName, dest_file_path, image_data, timeout_per_file)              
             if asset.can_delete and asset.creation_date < self.localDeleteDateTime:
                 self.assetsToBeDeleted.append(asset)
 
