@@ -1,4 +1,3 @@
-from ast import Bytes
 import json, photos
 from os.path import join
 from datetime import datetime, timedelta
