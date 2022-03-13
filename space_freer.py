@@ -54,9 +54,8 @@ class SpaceFreer(object):
             asset_file_name = str(ObjCInstance(asset).filename())
             if asset_file_name not in remote_file_names:
                 dest_file_path = join(dest_path, asset_file_name)
-                with asset.get_image_data() as image_data:
+                with asset.get_image_data() as image_data: #does not get all the bytes from video files for some reason
                     image_data: BytesIO
-                    image_data.seek(0)
                     self.smbCnxn.storeFile(self.smbServer.shareName, dest_file_path, image_data, timeout_per_file)
             if asset.can_delete and asset.creation_date < self.localDeleteDateTime:
                 self.assetsToBeDeleted.append(asset)
@@ -66,8 +65,8 @@ class SpaceFreer(object):
         try:
             print("moving image files to SMB server...\n")
             self._move_files_to_smb_server("image", 30)
-            print("moving video files to SMB server...\n")
-            self._move_files_to_smb_server("video", 2048)
+            # print("moving video files to SMB server...\n")
+            # self._move_files_to_smb_server("video", 2048)
         finally:
             self.smbCnxn.close()
             if self.assetsToBeDeleted:

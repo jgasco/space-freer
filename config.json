@@ -9,7 +9,7 @@
         "password": "****"
     },
     "localDeleteTimePeriod": {
-        "value": 90,
+        "value": 30,
         "units": "days"
     } 
 }
