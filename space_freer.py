@@ -45,31 +45,34 @@ class SpaceFreer(object):
         self.smbCnxn.connect(self.smbServer.ipAddress)
         self.assetsToBeDeleted = []
 
-    def _move_files_to_smb_server(self, media_type: str, timeout_per_file: int):
+    def _move_files_to_smb_server(self, media_type: str, timeout_per_file: int) -> int:
         dest_path = self.smbServer.destImagePath if media_type == "image" else self.smbServer.destVideoPath
         remote_file_names: "set[str]" = {sf.filename for sf in self.smbCnxn.listPath(self.smbServer.shareName, dest_path) if sf.isNormal}
+        remote_copy_count = 0
         assets = photos.get_assets(media_type)
         for asset in assets:
             asset_file_name = str(ObjCInstance(asset).filename())
             if asset_file_name not in remote_file_names:
                 dest_file_path = join(dest_path, asset_file_name)
-                with asset.get_image_data() as image_data: #does not get all the bytes from video files for some reason
-                    image_data: BytesIO
-                    self.smbCnxn.storeFile(self.smbServer.shareName, dest_file_path, image_data, timeout_per_file)
+                #asset.get_image_data() does not get all the bytes from video files for some reason
+                self.smbCnxn.storeFile(self.smbServer.shareName, dest_file_path, asset.get_image_data(), timeout_per_file)
+                remote_copy_count += 1
             if asset.can_delete and asset.creation_date < self.localDeleteDateTime:
                 self.assetsToBeDeleted.append(asset)
+        return remote_copy_count       
 
     def run(self):
         dt_start = datetime.now()
         try:
             print("moving image files to SMB server...\n")
-            self._move_files_to_smb_server("image", 30)
+            remote_copy_count = self._move_files_to_smb_server("image", 30)
+            print(remote_copy_count, "image(s) were copied to the SMB server\n")
             # print("moving video files to SMB server...\n")
             # self._move_files_to_smb_server("video", 2048)
         finally:
             self.smbCnxn.close()
             if self.assetsToBeDeleted:
-                print(f"deleting {len(self.assetsToBeDeleted)} items from the photos library...\n")
+                print(f"{len(self.assetsToBeDeleted)} items from the photos library are older than {self.localDeleteTimePeriod.value} {self.localDeleteTimePeriod.units} and are now being deleted...\n")
                 photos.batch_delete(self.assetsToBeDeleted)
         print(f"Done (elapsed time: {datetime.now() - dt_start})")
 
