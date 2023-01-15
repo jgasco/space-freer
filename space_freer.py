@@ -1,7 +1,6 @@
 import json, photos
 from os.path import join
 from datetime import datetime, timedelta
-from io import BytesIO
 from smb.SMBConnection import SMBConnection
 from objc_util import ObjCInstance
 
@@ -17,21 +16,21 @@ class SmbServer(object):
         self.password = password
 
 class TimePeriod(object):
-    units = ("days", "weeks", "years")
-    def __init__(self, value: int, units: str) -> None:
+    units = ("day", "week", "year")
+    def __init__(self, value: int, unit: str) -> None:
         self.value = value
-        if units in TimePeriod.units:
-            self.units = units
+        if unit in TimePeriod.units:
+            self.unit = unit
         else:
-            raise ValueError(f"units argument must be one of the following: {TimePeriod.units}")
+            raise ValueError(f"unit argument must be one of the following: {TimePeriod.units}")
         self.timedelta = self._get_timedelta()
 
     def _get_timedelta(self) -> timedelta:
-        if self.units == TimePeriod.units[0]:
+        if self.unit == TimePeriod.units[0]:
             td = timedelta(days=self.value)
-        elif self.units == TimePeriod.units[1]:
+        elif self.unit == TimePeriod.units[1]:
             td = timedelta(weeks=self.value)
-        else:
+        else: #self.unit is "year"
             number_of_weeks = self.value * 52
             td = timedelta(weeks=number_of_weeks)
         return td
@@ -65,10 +64,11 @@ class SpaceFreer(object):
         dt_start = datetime.now()
         try:
             print("moving image files to SMB server...\n")
-            remote_copy_count = self._move_files_to_smb_server("image", 30)
-            print(remote_copy_count, "image(s) were copied to the SMB server\n")
-            # print("moving video files to SMB server...\n")
-            # self._move_files_to_smb_server("video", 2048)
+            remote_copy_count_image = self._move_files_to_smb_server("image", 30)
+            print(remote_copy_count_image, "image(s) were copied to the SMB server\n")
+            print("moving video files to SMB server...\n")
+            remote_copy_count_video = self._move_files_to_smb_server("video", 2048)
+            print(remote_copy_count_video, "video(s) were copied to the SMB server\n")
         finally:
             self.smbCnxn.close()
             if self.assetsToBeDeleted:
