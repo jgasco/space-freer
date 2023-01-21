@@ -6,7 +6,8 @@
         "destImagePath": "steve/iphone/image",
         "destVideoPath": "steve/iphone/video",
         "username": "steve",
-        "password": "****"
+        "password": "****",
+        "useNtlmV2": false
     },
     "localDeleteTimePeriod": {
         "value": 1,

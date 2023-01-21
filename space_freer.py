@@ -3,10 +3,12 @@ from os.path import join
 from datetime import datetime, timedelta
 from smb.SMBConnection import SMBConnection
 from objc_util import ObjCInstance
+#from smb import smb_structs
+#smb_structs.SUPPORT_SMB2 = False
 
 class SmbServer(object):
     def __init__(self, name: str, ipAddress: str, shareName: str,
-    destImagePath: str, destVideoPath: str, username: str, password: str) -> None:
+    destImagePath: str, destVideoPath: str, username: str, password: str, useNtlmV2: bool) -> None:
         self.name = name
         self.ipAddress = ipAddress
         self.shareName = shareName
@@ -14,6 +16,7 @@ class SmbServer(object):
         self.destVideoPath = destVideoPath
         self.username = username
         self.password = password
+        self.useNtlmV2 = useNtlmV2
 
 class TimePeriod(object):
     units = ("day", "week", "year")
@@ -40,7 +43,7 @@ class SpaceFreer(object):
         self.smbServer = SmbServer(**smbServer)
         self.localDeleteTimePeriod = TimePeriod(**localDeleteTimePeriod)
         self.localDeleteDateTime = datetime.now() - self.localDeleteTimePeriod.timedelta
-        self.smbCnxn = SMBConnection(self.smbServer.username, self.smbServer.password, "iPhone", self.smbServer.name)
+        self.smbCnxn = SMBConnection(self.smbServer.username, self.smbServer.password, "iPhone", self.smbServer.name, use_ntlm_v2=self.smbServer.useNtlmV2)
         self.smbCnxn.connect(self.smbServer.ipAddress)
         self.assetsToBeDeleted = []
 
